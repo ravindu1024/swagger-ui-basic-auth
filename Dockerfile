@@ -1,12 +1,14 @@
 FROM swaggerapi/swagger-ui
 
-RUN apk add apache2-utils 
+RUN apk update
+RUN apk add apache2-utils
 
 ARG USERNAME=username
 ARG PASSWORD=password
 
 RUN htpasswd -c -b /etc/nginx/.htpasswd ${USERNAME} ${PASSWORD} && cat /etc/nginx/.htpasswd
 
-RUN sed -i "s|location / {|location / {\n\tauth_basic \"Restricted Content\";\n\tauth_basic_user_file /etc/nginx/.htpasswd;\n|g" /etc/nginx/nginx.conf
+COPY 50-basic_auth.sh /docker-entrypoint.d/
+RUN chmod +x /docker-entrypoint.d/50-basic_auth.sh
 
-CMD ["sh", "/usr/share/nginx/docker-run.sh"]
+RUN cat /etc/nginx/conf.d/default.conf
